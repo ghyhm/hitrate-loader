@@ -30,7 +30,7 @@ public class CsvLoader {
 	public static final int WEBSITE_INDEX = 2;
 	public static final int VISITS_INDEX = 3;
 	public static final int BATCH_SIZE = 30;
-	
+
 	private File file;
 	private String dbUrl;
 	private String dbUsername;

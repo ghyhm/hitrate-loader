@@ -19,6 +19,15 @@ dependencies {
     compile 'commons-dbcp:commons-dbcp:1.4'
     compile 'commons-pool:commons-pool:1.6'
     compile 'com.opencsv:opencsv:3.10'
+    testCompile 'info.cukes:cucumber-java:1.2.5'
+    testCompile 'info.cukes:cucumber-junit:1.2.5'
+    testCompile 'junit:junit:4.12'
+}
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testRuntime
+    }
 }
 
 task stage() {
@@ -34,4 +43,15 @@ task createJar(type: Jar) {
     baseName = project.name
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
+}
+
+task cucumber() {
+    dependsOn assemble, compileTestJava
+    doLast {
+        javaexec {
+            main = "cucumber.api.cli.Main"
+            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+            args = ['--plugin', 'pretty', '--glue', 'gradle.cucumber', 'src/test/resources']
+        }
+    }
 }
