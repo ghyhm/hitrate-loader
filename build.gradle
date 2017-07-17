@@ -1,0 +1,36 @@
+buildscript {
+	repositories {
+	    mavenCentral()
+	}
+    dependencies {
+	    classpath 'mysql:mysql-connector-java:5.1.31'
+    }
+}
+apply plugin: 'java'
+apply plugin: 'eclipse'
+archivesBaseName = 'hitrate-loader'
+version = '1' 
+repositories {
+    mavenCentral()
+}
+dependencies {
+    compile 'mysql:mysql-connector-java:5.1.31'
+    compile 'commons-dbcp:commons-dbcp:1.4'
+    compile 'commons-pool:commons-pool:1.6'
+    compile 'com.opencsv:opencsv:3.10'
+}
+
+task stage() {
+    dependsOn clean
+}
+
+task createJar(type: Jar) {
+	manifest {
+        attributes 'Implementation-Title': 'CSV Loader',
+        	'Implementation-Version': version,
+        	'Main-Class': 'com.hitrate.loader.CsvLoader'
+    }
+    baseName = project.name
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
