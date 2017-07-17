@@ -17,6 +17,14 @@ The parameter is to specify whether we use dev or prd properties file.
 
 In real world, we can have shell scripts to execute the jar file. Then we can setup schedular like Autosys to run the shell script when the file exists.
 
+## Integration with Circle CI
+
+The project is integrated with Circle CI. Any check-in to github will run circle ci automatically.
+
+We can define the task to run in circle CI, like running all cucumber tests.
+
+<a href="https://circleci.com/gh/ghyhm/hitrate-loader">Hit Rate Loader Circle CI</a>
+
 ## Assumptions
 1. csv file should follow defined format.
 
