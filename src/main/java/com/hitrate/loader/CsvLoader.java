@@ -23,49 +23,58 @@ import java.util.Properties;
 import com.opencsv.CSVReader;
 
 public class CsvLoader {
-	private static String CLEAN_TMP_TABLE_SQL = "DELETE FROM hitrate_tmp";
-	private static String DELETE_DUPLICATE_SQL = "DELETE FROM hitrate WHERE EXISTS (SELECT 1 FROM hitrate_tmp where hitrate_tmp.visit_date = hitrate.visit_date and hitrate_tmp.website = hitrate.website)";
-	private static String INSERT_DATA_SQL = "INSERT INTO hitrate (visit_date, website, visits) SELECT visit_date, website, visits FROM hitrate_tmp";
-
+	public static final String CLEAN_TMP_TABLE_SQL = "DELETE FROM hitrate_tmp";
+	public static final String DELETE_DUPLICATE_SQL = "DELETE FROM hitrate WHERE EXISTS (SELECT 1 FROM hitrate_tmp where hitrate_tmp.visit_date = hitrate.visit_date and hitrate_tmp.website = hitrate.website)";
+	public static final String INSERT_DATA_SQL = "INSERT INTO hitrate (visit_date, website, visits) SELECT visit_date, website, visits FROM hitrate_tmp";
+	public static final int VISIT_DATE_INDEX = 1;
+	public static final int WEBSITE_INDEX = 2;
+	public static final int VISITS_INDEX = 3;
+	public static final int BATCH_SIZE = 30;
+	
 	private File file;
 	private String dbUrl;
-	private String dbHost;
-	private String dbName;
 	private String dbUsername;
 	private String dbPassword;
 
-	private String getLoadDataToTmpTableSql() {
-		return "LOAD DATA LOCAL INFILE '" + file + "' INTO TABLE hitrate_tmp FIELDS TERMINATED BY '|'"
-				+ " LINES TERMINATED BY '\n' IGNORE 1 LINES (visit_date, website, visits) ";
-	}
-
-	private void loadDataToTmpTable(Connection connection) throws IOException, SQLException, ParseException {
-		// Runtime rt = Runtime.getRuntime();
-		// Process pr = rt.exec("mysqlimport --ignore-lines=1
-		// --fields-terminated-by=| --columns='visit_date, website, visits'
-		// --local -u " + dbUsername + " -p " + dbPassword + " -h " + dbHost + "
-		// " + dbName + " " + file.getPath());
-		@SuppressWarnings("resource")
-		CSVReader reader = new CSVReader(new FileReader(file.getPath()), '|', '\'', 1);
-		String insertQuery = "Insert into hitrate_tmp (visit_date, website, visits) values (?,?,?)";
-		PreparedStatement pstmt = connection.prepareStatement(insertQuery);
-		String[] rowData = null;
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-		int i = 0;
-		while ((rowData = reader.readNext()) != null) {
-			pstmt.setDate(1, new java.sql.Date(formatter.parse(rowData[0]).getTime()));
-			pstmt.setString(2, rowData[1]);
-			pstmt.setInt(3, Integer.parseInt(rowData[2]));
-			pstmt.addBatch();// add batch
-
-			if (i % 30 == 0)// insert when the batch size is 10
-				pstmt.executeBatch();
+	public static void main(String[] args) {
+		if (args[0] != null) {
+			try {
+				CsvLoader csvLoader = new CsvLoader(args[0]);
+				csvLoader.process();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
-		System.out.println("Data Successfully Uploaded");
 	}
 
 	public CsvLoader(String env) throws IOException {
 		loadProperties(env);
+	}
+
+	public void process() throws SQLException {
+		Path myDir = Paths.get(file.getParent());
+
+		try {
+			WatchService watcher = myDir.getFileSystem().newWatchService();
+			myDir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE);
+
+			WatchKey watckKey = watcher.take();
+
+			List<WatchEvent<?>> events = watckKey.pollEvents();
+			for (WatchEvent<?> event : events) {
+				if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
+					if (loadCsv()) {
+						moveFileToProcessed();
+					} else {
+						System.out.println("Failed to load CSV file");
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("Error: " + e.toString());
+		}
 	}
 
 	private void loadProperties(String env) throws IOException {
@@ -76,50 +85,12 @@ public class CsvLoader {
 			properties.load(inputStream);
 			file = new File(properties.getProperty("file"));
 			dbUrl = properties.getProperty("db.url");
-			dbHost = properties.getProperty("db.host");
-			dbName = properties.getProperty("db.name");
 			dbUsername = properties.getProperty("db.username");
 			dbPassword = properties.getProperty("db.password");
 		} else {
 			throw new FileNotFoundException(
 					"Properties file application-" + env + ".properties not found in classpath");
 		}
-	}
-
-	public void process() throws SQLException {
-		//define a folder root
-        Path myDir = Paths.get(file.getParent());       
-
-        try {
-           WatchService watcher = myDir.getFileSystem().newWatchService();
-           myDir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE);
-
-           WatchKey watckKey = watcher.take();
-
-           List<WatchEvent<?>> events = watckKey.pollEvents();
-           for (WatchEvent<?> event : events) {
-                if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-        			if (loadCsv()) {
-        				moveFileToProcessed();
-        			} else {
-        				System.out.println("Failed to load CSV file");
-        			}
-                }
-            }
-           
-        } catch (Exception e) {
-            System.out.println("Error: " + e.toString());
-        }
-        
-//		if (file.exists()) {
-//			if (loadCsv()) {
-//				moveFileToProcessed();
-//			} else {
-//				System.out.println("Failed to load CSV file");
-//			}
-//		} else {
-//			System.out.println("File not found");
-//		}
 	}
 
 	@SuppressWarnings("resource")
@@ -132,8 +103,6 @@ public class CsvLoader {
 			stmt = connection.createStatement();
 			stmt.execute(CLEAN_TMP_TABLE_SQL);
 
-			// stmt = connection.createStatement();
-			// stmt.execute(getLoadDataToTmpTableSql());
 			loadDataToTmpTable(connection);
 
 			stmt = connection.createStatement();
@@ -165,17 +134,24 @@ public class CsvLoader {
 		}
 	}
 
-	public static void main(String[] args) {
-		if (args[0] != null) {
-			CsvLoader csvLoader;
-			try {
-				csvLoader = new CsvLoader(args[0]);
-				csvLoader.process();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			} catch (SQLException e) {
-				e.printStackTrace();
+	private void loadDataToTmpTable(Connection connection) throws IOException, SQLException, ParseException {
+		@SuppressWarnings("resource")
+		CSVReader reader = new CSVReader(new FileReader(file.getPath()), '|', '\'', 1);
+		String insertQuery = "Insert into hitrate_tmp (visit_date, website, visits) values (?,?,?)";
+		PreparedStatement pstmt = connection.prepareStatement(insertQuery);
+		String[] rowData = null;
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		int i = 0;
+		while ((rowData = reader.readNext()) != null) {
+			pstmt.setDate(VISIT_DATE_INDEX, new java.sql.Date(formatter.parse(rowData[0]).getTime()));
+			pstmt.setString(WEBSITE_INDEX, rowData[1]);
+			pstmt.setInt(VISITS_INDEX, Integer.parseInt(rowData[2]));
+			pstmt.addBatch(); // add batch
+
+			if (i % BATCH_SIZE == 0) {
+				pstmt.executeBatch();
 			}
 		}
+		System.out.println("Data Successfully Uploaded");
 	}
 }
