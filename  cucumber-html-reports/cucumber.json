@@ -1,0 +1,125 @@
+[
+  {
+    "line": 1,
+    "elements": [
+      {
+        "line": 3,
+        "name": "Search top 5 hit rate websites",
+        "description": "",
+        "id": "load-hit-rate-data;search-top-5-hit-rate-websites",
+        "type": "scenario",
+        "keyword": "Scenario",
+        "steps": [
+          {
+            "result": {
+              "duration": 76809466,
+              "error_message": "cucumber.api.PendingException: TODO: implement me\n\tat cucumber.steps.LoadHitrateSteps.i_have_the_following_hit_rate_data(LoadHitrateSteps.java:16)\n\tat ✽.Given I have the following hit rate data(loadHitrate.feature:5)\n",
+              "status": "pending"
+            },
+            "line": 5,
+            "name": "I have the following hit rate data",
+            "match": {
+              "location": "LoadHitrateSteps.i_have_the_following_hit_rate_data(DataTable)"
+            },
+            "rows": [
+              {
+                "cells": [
+                  "visit_date",
+                  "website",
+                  "visits"
+                ],
+                "line": 6
+              },
+              {
+                "cells": [
+                  "2016-01-06",
+                  "www.bing.com",
+                  "14000000"
+                ],
+                "line": 7
+              }
+            ],
+            "keyword": "Given "
+          },
+          {
+            "result": {
+              "status": "skipped"
+            },
+            "line": 8,
+            "name": "hit rate loader is run",
+            "match": {
+              "location": "LoadHitrateSteps.hit_rate_loader_is_run()"
+            },
+            "keyword": "When "
+          },
+          {
+            "result": {
+              "status": "skipped"
+            },
+            "line": 9,
+            "name": "the following hit rate data should be loaded",
+            "match": {
+              "location": "LoadHitrateSteps.the_following_hit_rate_data_should_be_loaded(DataTable)"
+            },
+            "rows": [
+              {
+                "cells": [
+                  "visit_date",
+                  "website",
+                  "visits"
+                ],
+                "line": 10
+              },
+              {
+                "cells": [
+                  "2016-01-06",
+                  "www.bing.com",
+                  "14065457"
+                ],
+                "line": 11
+              },
+              {
+                "cells": [
+                  "2016-01-06",
+                  "www.ebay.com.au",
+                  "19831166"
+                ],
+                "line": 12
+              },
+              {
+                "cells": [
+                  "2016-01-06",
+                  "www.facebook.com",
+                  "104346720"
+                ],
+                "line": 13
+              },
+              {
+                "cells": [
+                  "2016-01-06",
+                  "mail.live.com",
+                  "21536612"
+                ],
+                "line": 14
+              },
+              {
+                "cells": [
+                  "2016-01-06",
+                  "www.wikipedia.org",
+                  "13246531"
+                ],
+                "line": 15
+              }
+            ],
+            "keyword": "Then "
+          }
+        ]
+      }
+    ],
+    "name": "Load hit rate data",
+    "description": "",
+    "id": "load-hit-rate-data",
+    "keyword": "Feature",
+    "uri": "loadHitrate.feature"
+  }
+]
