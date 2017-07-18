@@ -1,4 +1,21 @@
 # hitrate-loader
+## Mechanism
+The location of file to watch for is defined in application configuration file.
+
+The jar file should be executed in the background by a shell script.
+
+We can have a scheduler like Autosys so that the program is executed when file exists.
+
+Once the file is loaded, it will be moved to "processed" folder.
+
+It is a standalone program and not bundled to the hitrate report web application. It can run even when the web application is down.
+
+We need to check if file format is valid like the column type, number of columns etc.
+
+Email notification needs to be sent in case any failure.
+
+Since processed file will be put to processed folder, regular clean up job is required to remove obsolete files so that we only keep history of files to a certain period only.
+
 ## Application configuration
 Application configuration files are defined in hitrate-loader/src/main/resources/properties.
 
@@ -21,10 +38,6 @@ Properties files are in /hitrate-loader/src/main/resources
 <code>java -jar build/libs/hitrate-loader-1.jar dev &</code>
 
 The parameter is to specify whether we use dev or prd properties file.
-
-Note:
-
-In real world, we can have shell scripts to execute the jar file. Then we can setup schedular like Autosys to run the shell script when the file exists.
 
 ## Database
 MySQL is used in the application.
