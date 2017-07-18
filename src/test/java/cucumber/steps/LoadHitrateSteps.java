@@ -1,4 +1,4 @@
-package cucumber;
+package cucumber.steps;
 
 import cucumber.api.DataTable;
 import cucumber.api.PendingException;
@@ -6,7 +6,7 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 
-public class StepDefinitions {
+public class LoadHitrateSteps {
 	@Given("^I have the following hit rate data$")
 	public void i_have_the_following_hit_rate_data(DataTable arg1) throws Throwable {
 	    // Write code here that turns the phrase above into concrete actions
