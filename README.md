@@ -1,4 +1,7 @@
 # hitrate-loader
+## Purpose
+The purpose of this project is to watch a particular folder for hit rate CSV file in pre-defined format. Once the file is present, it will be parsed and loaded to hit rate database.
+
 ## Mechanism
 The location of file to watch for is defined in application configuration file.
 
